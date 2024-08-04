@@ -109,3 +109,42 @@ make deploy
 ## Running in Azure App Service (Windows)
 
 Just don't, it's awful
+
+## PipeLine Script
+
+```
+pipeline {
+    agent any
+
+    stages {
+         stage('Set Up') {
+             steps {
+                 sh 'sudo apt update'
+                 sh 'sudo apt install -y build-essential'
+             }
+         }
+        stage('Git Checkout') {
+            steps {
+                git changelog: false, poll: false, url: 'https://github.com/Kavindulakmal/python-demoapp.git'
+            }
+        }
+        stage('Docker Build') {
+            steps {
+                sh "make image"
+            }
+        }
+        stage('Docker Push') {
+            steps {
+                script{
+                    withDockerRegistry(credentialsId: '6536d9b8-e3f2-4e38-bd5c-7f7603b92fe4', toolName: 'docker') {
+                        sh 'docker image'
+                        sh 'docker run -d --rm -it -p 5000:5000 wicklak/python-demoapp:latest'
+                    }
+                }
+            }
+        }
+    }
+}
+
+```
+
